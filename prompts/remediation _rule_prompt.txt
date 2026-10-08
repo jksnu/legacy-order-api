@@ -1,0 +1,85 @@
+You are performing Phase 3 of the legacy-order-api re-engineering exercise.
+
+## Goal
+
+Create a reusable remediation rule set for a future AI coding agent.
+
+Create ONLY:
+
+`docs/remediation-agent-skill.md`
+
+Do NOT remediate the application yet.
+
+## Inputs
+
+Inspect:
+
+* entire repository
+* `docs/technical-debt-register.md`
+* `docs/security-assessment.md`
+* existing tests
+
+Do not use `seed_notes.md`.
+
+## Mandatory Constraints
+
+During this phase:
+
+* Do NOT modify application source code.
+* Do NOT modify tests.
+* Do NOT modify dependencies/configuration/database.
+* Do NOT fix vulnerabilities.
+* Do NOT perform refactoring.
+* Only create/update `docs/remediation-agent-skill.md`.
+
+## Skill Requirements
+
+The skill must give a future coding agent concise, actionable rules covering:
+
+1. **Evidence first** — understand affected code, behavior, callers and tests before changing anything.
+2. **Minimal safe change** — fix the identified problem without unrelated refactoring.
+3. **Authorization** — enforce object ownership and role checks on every protected resource and mutation; never trust client-supplied ownership IDs.
+4. **Authentication** — secure JWT secrets, require token expiry, fail authentication closed.
+5. **Input/SQL** — treat all input as untrusted; validate it; never concatenate user input into SQL; use bound parameters.
+6. **Sensitive data** — never log passwords, tokens, card/payment data or secrets.
+7. **Payment state** — never treat client-provided values as proof of successful payment; do not invent external payment behavior.
+8. **Configuration** — no known production secrets, default credentials or production debug mode.
+9. **Errors** — do not expose raw exception/database details; return safe client errors and log controlled diagnostics.
+10. **Database/transactions** — preserve atomicity; avoid partial commits; do not introduce schema changes without architectural approval.
+11. **API compatibility** — preserve existing contracts unless a security/business/architectural change explicitly requires otherwise.
+12. **Testing** — every security fix should have a regression test; preserve legitimate positive-path behavior.
+13. **Dependencies** — don't invent CVEs or upgrade dependencies without evidence and justification.
+14. **Stop and ask** — stop when business rules, authorization model, payment semantics, API changes, schema changes or external integrations are unclear.
+15. **Traceability** — remediation must map back to the original technical-debt/security finding and corresponding tests.
+
+## Required Sections
+
+Structure the skill as:
+
+* Purpose & Scope
+* Core Remediation Rules
+* Authentication & Authorization
+* Input/SQL & Sensitive Data
+* Configuration & Error Handling
+* Database & API Compatibility
+* Testing & Validation
+* Dependency Rules
+* Stop-and-Ask Conditions
+* Forbidden Behaviors
+* Traceability Matrix
+
+The Traceability Matrix must map SEC-001 through SEC-011 to the applicable remediation rule.
+
+## Definition of Done
+
+Before finishing, verify:
+
+* `docs/remediation-agent-skill.md` exists
+* application source unchanged
+* tests unchanged
+* dependencies/configuration unchanged
+* no remediation was performed
+* all SEC-001 through SEC-011 are covered
+* rules are reusable and actionable by a future coding agent
+
+Finally report the file created, number of rules, findings mapped, and confirm that no application code or tests were modified.

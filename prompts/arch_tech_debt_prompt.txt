@@ -1,0 +1,315 @@
+You are acting as a senior software architecture reverse-engineering agent.
+
+Your task is to reverse-engineer the CURRENT repository as it exists today.
+
+IMPORTANT OPERATING RULES:
+
+This is an ANALYSIS-ONLY task.
+Do NOT modify, refactor, delete, rename, or rewrite any application source code.
+Do NOT fix security vulnerabilities.
+Do NOT fix technical debt.
+Do NOT add or modify tests.
+Do NOT update dependencies.
+Do NOT change configuration.
+Do NOT create remediation code.
+Do NOT assume that the existing architecture is the intended architecture.
+Describe what the code ACTUALLY does today.
+Base findings on evidence from the repository.
+Do not use any pre-existing "answer key", seed notes, or hidden documentation to infer findings. Perform the analysis independently.
+If something cannot be established from the code, explicitly mark it as "Unknown" rather than guessing.
+Repository context:
+This is a legacy Flask REST API for order management.
+
+Perform a comprehensive reverse-engineering analysis covering:
+
+A. SYSTEM INVENTORY
+
+Identify:
+
+application entry points
+Flask application creation
+REST endpoints
+HTTP methods
+authentication mechanisms
+authorization mechanisms
+database technology
+ORM/data-access mechanisms
+configuration mechanisms
+external libraries
+external integrations, if any
+background processing, if any
+logging and error handling
+test structure
+Create a concise inventory table.
+B. AS-IS ARCHITECTURE
+
+Determine the actual logical architecture implemented by the code.
+
+Identify:
+
+presentation/API layer
+
+authentication layer
+
+business logic
+
+data access
+
+domain/model layer
+
+utility/shared components
+
+configuration
+
+reporting
+
+persistence
+For every major component explain:
+
+responsibility
+
+important files
+
+dependencies
+
+callers
+
+dependencies on other components
+
+architectural concerns
+Do NOT redesign the architecture.
+
+Produce:
+
+docs/as-is-architecture.md
+
+Include a Mermaid diagram showing the major runtime/component relationships.
+
+C. DEPENDENCY GRAPH
+
+Analyze:
+
+Python imports
+
+module-to-module dependencies
+
+important function/class call relationships
+
+database dependencies
+
+external package dependencies
+Identify:
+
+high fan-in modules
+
+high fan-out modules
+
+tightly coupled modules
+
+circular dependencies if present
+
+modules with multiple unrelated responsibilities
+Produce:
+
+docs/dependency-graph.md
+
+Include a Mermaid graph where practical.
+
+D. DOMAIN MAP
+
+Infer the business/domain concepts represented by the application.
+
+Identify:
+
+Users
+
+Customers
+
+Products
+
+Orders
+
+Order Items
+
+Payments
+
+Reports
+
+other meaningful domain concepts
+For each domain concept identify:
+
+corresponding model/data structure
+
+related services/functions
+
+API endpoints
+
+relationships to other concepts
+
+important business rules implemented in code
+Clearly distinguish:
+
+Explicitly implemented business rules
+Behavior inferred from implementation
+Unknown behavior
+Produce:
+docs/domain-map.md
+
+Include a Mermaid domain relationship diagram.
+
+E. TECHNICAL DEBT REGISTER
+
+Perform a systematic technical debt assessment.
+
+Look for at least:
+
+Architecture:
+
+separation-of-concerns violations
+
+excessive coupling
+
+large modules/functions
+
+misplaced responsibilities
+
+duplicated responsibilities
+
+global state
+Maintainability:
+
+duplicated code
+
+poor naming
+
+magic values
+
+complexity
+
+inconsistent patterns
+
+dead or suspicious code
+Reliability:
+
+weak exception handling
+
+transaction concerns
+
+inconsistent error behavior
+
+unsafe state changes
+Testing:
+
+missing coverage
+
+weak characterization
+
+untested business rules
+
+untested failure paths
+Dependencies:
+
+deprecated APIs
+
+outdated libraries
+
+questionable dependency choices
+Configuration:
+
+hard-coded configuration
+
+environment/configuration problems
+For every finding create a unique ID.
+
+Use this format:
+
+TD-001
+TD-002
+TD-003
+...
+
+For every finding provide:
+
+ID
+title
+category
+affected file(s)
+evidence
+why it is technical debt
+impact
+likelihood
+estimated remediation effort
+priority
+confidence
+Use the following scoring model:
+Impact:
+1 = Low
+2 = Medium
+3 = High
+4 = Critical
+
+Likelihood:
+1 = Unlikely
+2 = Possible
+3 = Likely
+4 = Very Likely
+
+Priority Score:
+
+Impact × Likelihood
+
+Priority:
+
+13–16 = P0
+9–12 = P1
+5–8 = P2
+1–4 = P3
+
+Remediation effort:
+
+S = < 2 hours
+M = 2–8 hours
+L = 1–3 days
+XL = > 3 days
+
+Do not invent measurements that cannot be supported. If a metric such as cyclomatic complexity is not measured, state that it has not been measured.
+
+Produce:
+
+docs/technical-debt-register.md
+
+F. TRACEABILITY
+
+At the end of each document, provide a "Evidence and Traceability" section listing the important source files/functions that support the conclusions.
+
+G. EXECUTIVE SUMMARY
+
+At the beginning of the technical debt register, provide a concise architecture-health summary containing:
+
+major architectural characteristics
+top 5 technical debt items
+most coupled components
+biggest maintainability concern
+biggest reliability concern
+biggest testing concern
+Again:
+DO NOT MODIFY APPLICATION CODE.
+
+The only files you are permitted to create or modify are:
+
+docs/as-is-architecture.md
+docs/dependency-graph.md
+docs/domain-map.md
+docs/technical-debt-register.md
+
+Before writing the documents, inspect the repository thoroughly.
+
+After producing the documents, provide a concise summary of:
+
+What you discovered.
+The five highest-priority technical debt items.
+Any areas where the codebase was ambiguous.
+Which findings have high confidence versus low confidence.
+Confirmation that no application source code was modified.
+9:06 PM
+You are acting as a senior software arc

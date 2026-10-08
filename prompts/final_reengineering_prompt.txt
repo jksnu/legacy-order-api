@@ -1,0 +1,94 @@
+As a final Phase, here you are supposed to reengineer the legacy-order-api following the steps mentioned below.
+
+Objective
+
+Using the existing repository, technical-debt register, security assessment, and remediation skill, complete the remediation workflow:
+
+tests first → remediation → full validation
+
+Human architecture and remediation sequencing decisions below are authoritative.
+
+Inputs
+
+Inspect:
+
+docs/technical-debt-register.md
+docs/security-assessment.md
+docs/remediation-agent-skill.md
+entire repository
+existing tests
+
+Do not use seed_notes.md.
+
+Step 1 — Tests First
+
+Before changing application source code:
+
+Add/extend tests for the confirmed security findings and important existing behavior.
+Focus especially on:
+customer/order/payment ownership
+customer vs admin authorization
+client-supplied customer_id
+SQL-injection-shaped report input
+JWT expiry/invalid authentication
+sensitive payment logging
+secure configuration/defaults
+safe error responses
+Preserve legitimate existing positive paths.
+Run the tests and record the pre-remediation result.
+
+Do NOT modify production code during this step.
+
+Step 2 — Remediate
+
+After the tests exist, remediate in this exact order:
+
+Authorization: SEC-001, SEC-002, SEC-003, SEC-004
+SQL injection: SEC-008
+Authentication/configuration: SEC-006, SEC-007, SEC-010
+Sensitive logging: SEC-005
+Payment-state correctness: SEC-009
+Error handling: SEC-011
+Address only technical debt necessary to safely implement the above.
+
+Follow docs/remediation-agent-skill.md strictly.
+
+Rules
+Make minimal, focused changes.
+Do not perform unrelated refactoring.
+Do not change API contracts unless required and justified by the finding.
+Do not invent business/payment/provider behavior.
+Do not add dependencies unless clearly necessary and justified.
+Do not make schema changes without stopping for approval.
+Never weaken/delete tests to make them pass.
+Preserve legitimate existing functionality.
+
+If business rules, payment semantics, schema changes, API compatibility, or architecture are unclear, STOP and report the decision required rather than guessing.
+
+Step 3 — Validation
+
+After remediation:
+
+Run the complete test suite.
+Run all newly added security regression tests.
+Verify legitimate positive paths still pass.
+Review the final diff for unrelated changes.
+Check that SEC-001 through SEC-011 are either:
+remediated and tested, or
+explicitly documented as requiring an architectural/business decision.
+Do not claim a finding is fixed without supporting test/evidence.
+Final Report
+
+At completion, report:
+
+pre-remediation test result
+post-remediation test result
+files changed
+security findings remediated
+tests added/updated
+any remaining findings or decisions required
+any technical debt intentionally left unchanged
+confirmation that no unrelated refactoring was performed
+confirmation that the final test suite passes, if it does
+
+Do not stop after creating tests; complete the remediation and validation unless a mandatory Stop-and-Ask condition is encountered.

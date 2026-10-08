@@ -1,0 +1,217 @@
+Act as a senior application security engineer performing a security assessment of this legacy Flask REST API.
+
+IMPORTANT:
+
+This is a SECURITY ANALYSIS ONLY.
+
+Do NOT modify application source code.
+
+Do NOT:
+
+* fix vulnerabilities
+* refactor code
+* modify dependencies
+* modify configuration
+* add security controls
+* add or modify tests
+* change database schemas
+* change API behavior
+
+The objective is to independently identify and document security vulnerabilities in the existing application.
+
+Do NOT assume that findings from previous architecture or technical-debt analysis are correct. Perform an independent security analysis.
+
+Do NOT use seed notes, hidden documentation, or an answer key as evidence.
+
+Analyze the entire repository, including:
+
+* Flask routes
+* authentication
+* authorization
+* JWT handling
+* request parsing
+* input validation
+* database access
+* SQL construction
+* ORM usage
+* models
+* configuration
+* secrets
+* logging
+* exception handling
+* error responses
+* dependencies
+* test code where relevant
+* application startup/configuration
+* REST API behavior
+
+Map findings to the current OWASP Top 10 categories:
+
+A01 Broken Access Control
+A02 Cryptographic Failures
+A03 Injection
+A04 Insecure Design
+A05 Security Misconfiguration
+A06 Vulnerable and Outdated Components
+A07 Identification and Authentication Failures
+A08 Software and Data Integrity Failures
+A09 Security Logging and Monitoring Failures
+A10 Server-Side Request Forgery
+
+Do not force findings into categories where there is insufficient evidence.
+
+For every OWASP category, explicitly state one of:
+
+* Finding identified
+* No finding identified from available evidence
+* Unable to determine
+
+For every security finding assign a unique ID:
+
+SEC-001
+SEC-002
+SEC-003
+...
+
+For every finding provide:
+
+1. Finding ID
+2. Title
+3. OWASP Top 10 category
+4. Affected endpoint(s)
+5. Affected file(s)
+6. Vulnerable code/function
+7. Evidence from the repository
+8. Data/control flow leading to the vulnerability
+9. Preconditions required for exploitation
+10. Potential impact
+11. Likelihood
+12. Severity
+13. Confidence
+14. Recommended remediation direction
+
+Use these severity levels:
+
+Critical
+High
+Medium
+Low
+Informational
+
+Do not claim exploitability unless the repository evidence supports it.
+
+Distinguish carefully between:
+
+* confirmed vulnerability
+* security weakness
+* architectural security risk
+* hardening recommendation
+* theoretical concern
+
+For authentication and authorization, explicitly analyze:
+
+* authentication mechanism
+* token validation
+* token expiration
+* token signing/secret handling
+* role enforcement
+* resource ownership
+* privilege boundaries
+* horizontal privilege escalation
+* vertical privilege escalation
+* IDOR/BOLA patterns
+
+For injection, inspect:
+
+* SQL
+* command execution
+* template rendering
+* dynamic queries
+* unsafe parsing/deserialization
+* other interpreter boundaries
+
+For sensitive data, inspect:
+
+* credentials
+* JWT secrets
+* passwords
+* tokens
+* payment information
+* logs
+* error responses
+* configuration
+
+For API security, inspect:
+
+* missing authorization
+* excessive data exposure
+* unsafe HTTP methods
+* unrestricted resource access
+* input validation
+* error handling
+* rate limiting indicators
+* security headers/configuration where applicable
+
+For dependencies:
+
+* inspect requirements.txt
+* identify known or potentially vulnerable dependencies where evidence is available
+* distinguish a dependency being old/deprecated from a confirmed known CVE
+* do not invent CVEs
+
+For every finding, explain why the evidence supports the OWASP mapping.
+
+Create:
+
+docs/security-assessment.md
+
+The document must contain these sections:
+
+# Executive Summary
+
+# Security Posture Overview
+
+# OWASP Top 10 Assessment
+
+# Detailed Findings
+
+# Authentication and Authorization Analysis
+
+# Input and Injection Analysis
+
+# Secrets and Sensitive Data Analysis
+
+# Dependency Analysis
+
+# Logging and Monitoring Analysis
+
+# Risk Prioritization
+
+# Recommended Remediation Sequence
+
+# Evidence and Traceability
+
+At the end, provide a table:
+
+| ID | OWASP | Finding | Severity | Likelihood | Confidence | Remediation Priority |
+
+Prioritize remediation using:
+
+Critical = P0
+High = P1
+Medium = P2
+Low = P3
+
+Do NOT modify any application code.
+
+The only permitted repository modification is:
+
+docs/security-assessment.md
+
+After completing the analysis, report:
+
+1. Number of security findings
+2. Findings by OWASP category
+3. Critical/High findings
+4. Any areas where security posture could not be determined
+5. Confirmation that application source code was not modified
