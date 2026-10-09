@@ -42,6 +42,5 @@ def check_stock(product_id, quantity):
     return product.stock >= quantity
 
 
-def log_payment_failure(order_id, email, card_number):
-    # Intentionally unsafe legacy logging for the security exercise.
-    logger.warning("Payment failed order=%s email=%s card=%s", order_id, email, card_number)
+def log_payment_failure(order_id):
+    logger.warning("Payment failed order=%s", order_id)

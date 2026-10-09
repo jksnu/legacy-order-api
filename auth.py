@@ -1,4 +1,5 @@
 from functools import wraps
+from datetime import datetime, timedelta, timezone
 from flask import request, jsonify
 import jwt
 from config import JWT_SECRET
@@ -6,7 +7,12 @@ from models import User
 
 
 def create_token(user):
-    return jwt.encode({"user_id": user.id, "role": user.role}, JWT_SECRET, algorithm="HS256")
+    expires_at = datetime.now(timezone.utc) + timedelta(minutes=30)
+    return jwt.encode(
+        {"user_id": user.id, "role": user.role, "exp": expires_at},
+        JWT_SECRET,
+        algorithm="HS256",
+    )
 
 
 def current_user():

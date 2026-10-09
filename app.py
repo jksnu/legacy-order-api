@@ -1,5 +1,6 @@
 from flask import Flask, jsonify
-from config import DATABASE_URL, DEBUG
+from werkzeug.exceptions import HTTPException
+from config import DATABASE_URL, DEBUG, SEED_DEMO_DATA
 from database import init_db, db
 from models import User, Customer, Product, Order, OrderItem, Payment
 from routes import api
@@ -15,12 +16,15 @@ def create_app():
 
     @app.errorhandler(Exception)
     def handle_error(error):
-        # Legacy behavior: detailed internal errors are returned to clients.
-        return jsonify({"error": str(error), "type": error.__class__.__name__}), 500
+        if isinstance(error, HTTPException):
+            return jsonify({"error": error.name}), error.code or 500
+        app.logger.error("Unhandled request error type=%s", type(error).__name__)
+        return jsonify({"error": "Internal server error"}), 500
 
     with app.app_context():
         db.create_all()
-        seed_data()
+        if SEED_DEMO_DATA:
+            seed_data()
 
     return app
 

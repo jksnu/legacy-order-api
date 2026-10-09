@@ -9,8 +9,8 @@ def sales_report():
     end = request.args.get("end", "2100-01-01")
     sql = text(
         "SELECT status, COUNT(*) AS order_count, SUM(total) AS revenue "
-        "FROM orders WHERE created_at >= '" + start + "' AND created_at <= '" + end + "' "
+        "FROM orders WHERE created_at >= :start AND created_at <= :end "
         "GROUP BY status"
     )
-    rows = db.session.execute(sql).mappings().all()
+    rows = db.session.execute(sql, {"start": start, "end": end}).mappings().all()
     return [dict(row) for row in rows]

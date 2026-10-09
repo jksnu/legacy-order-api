@@ -1,4 +1,4 @@
-from flask import Blueprint, jsonify, request
+from flask import Blueprint, current_app, jsonify, request
 from werkzeug.security import generate_password_hash, check_password_hash
 from database import db
 from models import User, Customer, Product, Order, OrderItem, Payment
@@ -9,6 +9,17 @@ from order_utils import create_order
 from reports import sales_report
 
 api = Blueprint("api", __name__, url_prefix="/api")
+
+
+def _customer_ids_for_user(user):
+    return [customer.id for customer in Customer.query.filter_by(user_id=user.id).all()]
+
+
+def _order_for_user(order_id, user):
+    order = Order.query.get_or_404(order_id)
+    if user.role != "admin" and order.customer_id not in _customer_ids_for_user(user):
+        return None
+    return order
 
 
 @api.post("/register")
@@ -42,13 +53,18 @@ def login():
 @api.get("/customers")
 @login_required
 def customers():
-    return jsonify([customer_to_dict(c) for c in Customer.query.all()])
+    user = current_user()
+    query = Customer.query if user.role == "admin" else Customer.query.filter_by(user_id=user.id)
+    return jsonify([customer_to_dict(c) for c in query.all()])
 
 
 @api.get("/customers/<int:customer_id>")
 @login_required
 def customer(customer_id):
     c = Customer.query.get_or_404(customer_id)
+    user = current_user()
+    if user.role != "admin" and c.user_id != user.id:
+        return jsonify({"error": "Not found"}), 404
     return jsonify(customer_to_dict(c))
 
 
@@ -66,6 +82,9 @@ def add_customer():
 @login_required
 def update_customer(customer_id):
     c = Customer.query.get_or_404(customer_id)
+    user = current_user()
+    if user.role != "admin" and c.user_id != user.id:
+        return jsonify({"error": "Not found"}), 404
     data = request.get_json() or {}
     c.name = data.get("name", c.name)
     c.email = data.get("email", c.email)
@@ -109,9 +128,8 @@ def add_product():
 
 
 @api.put("/products/<int:product_id>")
-@login_required
+@admin_required
 def update_product(product_id):
-    # Legacy authorization bug: any authenticated user can change a product price.
     p = Product.query.get_or_404(product_id)
     data = request.get_json() or {}
     if "name" in data:
@@ -131,16 +149,17 @@ def orders():
     if user.role == "admin":
         all_orders = Order.query.order_by(Order.created_at.desc()).all()
     else:
-        customer = Customer.query.filter_by(user_id=user.id).first()
-        all_orders = Order.query.filter_by(customer_id=customer.id).order_by(Order.created_at.desc()).all() if customer else []
+        customer_ids = _customer_ids_for_user(user)
+        all_orders = Order.query.filter(Order.customer_id.in_(customer_ids)).order_by(Order.created_at.desc()).all() if customer_ids else []
     return jsonify([{"id": o.id, "customer_id": o.customer_id, "status": o.status, "total": o.total} for o in all_orders])
 
 
 @api.get("/orders/<int:order_id>")
 @login_required
 def get_order(order_id):
-    # Deliberately seeded BOLA: resource ownership is not checked.
-    o = Order.query.get_or_404(order_id)
+    o = _order_for_user(order_id, current_user())
+    if o is None:
+        return jsonify({"error": "Not found"}), 404
     items = OrderItem.query.filter_by(order_id=o.id).all()
     return jsonify({
         "id": o.id,
@@ -158,10 +177,11 @@ def add_order():
     user = current_user()
     data = request.get_json() or {}
     customer_id = data.get("customer_id")
-    # Legacy endpoint trusts the client-supplied customer_id.
-    if user.role != "admin" and not customer_id:
-        customer = Customer.query.filter_by(user_id=user.id).first()
-        customer_id = customer.id if customer else None
+    if user.role != "admin":
+        customer_ids = _customer_ids_for_user(user)
+        if customer_id and customer_id not in customer_ids:
+            return jsonify({"error": "Not found"}), 404
+        customer_id = customer_id or (customer_ids[0] if customer_ids else None)
     if not customer_id or not data.get("items"):
         return jsonify({"error": "customer_id and items are required"}), 400
     try:
@@ -169,16 +189,24 @@ def add_order():
         return jsonify({"id": order.id, "total": order.total, "status": order.status}), 201
     except ValueError as exc:
         db.session.rollback()
-        return jsonify({"error": str(exc)}), 400
+        safe_messages = {
+            "Product not found": "Product not found",
+            "Quantity must be positive": "Quantity must be positive",
+            "Insufficient stock": "Insufficient stock",
+        }
+        return jsonify({"error": safe_messages.get(str(exc), "Invalid order items")}), 400
     except Exception as exc:
         db.session.rollback()
-        return jsonify({"error": str(exc)}), 500
+        current_app.logger.error("Order creation failed error_type=%s", type(exc).__name__)
+        return jsonify({"error": "Unable to create order"}), 500
 
 
 @api.put("/orders/<int:order_id>/status")
 @login_required
 def update_order_status(order_id):
-    o = Order.query.get_or_404(order_id)
+    o = _order_for_user(order_id, current_user())
+    if o is None:
+        return jsonify({"error": "Not found"}), 404
     data = request.get_json() or {}
     status = data.get("status")
     if status not in ["NEW", "PROCESSING", "SHIPPED", "CANCELLED"]:
@@ -191,7 +219,9 @@ def update_order_status(order_id):
 @api.delete("/orders/<int:order_id>")
 @login_required
 def delete_order(order_id):
-    o = Order.query.get_or_404(order_id)
+    o = _order_for_user(order_id, current_user())
+    if o is None:
+        return jsonify({"error": "Not found"}), 404
     OrderItem.query.filter_by(order_id=o.id).delete()
     Payment.query.filter_by(order_id=o.id).delete()
     db.session.delete(o)
@@ -202,7 +232,9 @@ def delete_order(order_id):
 @api.post("/orders/<int:order_id>/payment")
 @login_required
 def pay_order(order_id):
-    o = Order.query.get_or_404(order_id)
+    o = _order_for_user(order_id, current_user())
+    if o is None:
+        return jsonify({"error": "Not found"}), 404
     data = request.get_json() or {}
     amount = float(data.get("amount", 0))
     method = data.get("method", "card")
@@ -214,9 +246,15 @@ def pay_order(order_id):
     if Payment.query.filter_by(order_id=o.id).first():
         return jsonify({"error": "Order already paid"}), 409
     if method == "card" and len(card_number) < 12:
-        log_payment_failure(o.id, current_user().email, card_number)
+        log_payment_failure(o.id)
         return jsonify({"error": "Invalid card number"}), 400
-    payment = Payment(order_id=o.id, amount=amount, method=method, transaction_reference="TXN-" + str(o.id) + "-001")
+    payment = Payment(
+        order_id=o.id,
+        amount=amount,
+        method=method,
+        status="SIMULATED",
+        transaction_reference="TXN-" + str(o.id) + "-001",
+    )
     db.session.add(payment)
     o.status = "PROCESSING"
     db.session.commit()
@@ -227,6 +265,9 @@ def pay_order(order_id):
 @login_required
 def get_payment(order_id):
     payment = Payment.query.filter_by(order_id=order_id).first_or_404()
+    order = _order_for_user(payment.order_id, current_user())
+    if order is None:
+        return jsonify({"error": "Not found"}), 404
     return jsonify({"id": payment.id, "order_id": payment.order_id, "amount": payment.amount, "method": payment.method, "status": payment.status, "transaction_reference": payment.transaction_reference})
 
 
@@ -236,4 +277,5 @@ def report_sales():
     try:
         return jsonify(sales_report())
     except Exception as exc:
-        return jsonify({"error": str(exc)}), 500
+        current_app.logger.error("Sales report failed error_type=%s", type(exc).__name__)
+        return jsonify({"error": "Unable to generate sales report"}), 500
